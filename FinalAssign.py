@@ -110,31 +110,31 @@ Rule('Activate_AKT', INS(s=1)%IRS(sINS=1,sPI3K=3, sATP=2, kAKT=None)%ATP(s=2)%PI
 Rule('Phosphorylate_AKT', INS(s=1)%IRS(sINS=1,sPI3K=3, sATP=2, kAKT=4)%ATP(s=2)%PI3K(sS6K=None, sIRS=3)%AKT(s=4) >> INS(s=None) + IRS(sINS=None,sPI3K=None, sATP=None, kAKT=None) + ADP(s=None) + PI3K(sS6K=None, sIRS=None) + pAKT(p=None), *[kcat])
 
 # #PhosphoAKT-RHEB Binding --> Prodcution of Activated RHEB
-# bind(pAKT, 'p', RHEB, 'kAKT',[kf_bind, kr_bind])
-# Rule('RHEB_Activation', pAKT(p=1)%RHEB(kAKT=1) >> AKT(s=None) + pRHEB(p=None), *[kcat])
+bind(pAKT, 'p', RHEB, 'kAKT',[kf_bind, kr_bind])
+Rule('RHEB_Activation', pAKT(p=1)%RHEB(kAKT=1) >> AKT(s=None) + pRHEB(p=None), *[kcat])
 
 # #mTOR-RAPA-FKBP Inhibitory Complex
-# Rule('FKBP_Inhibitory_Complex', RAPA(s=None)+ FKBP(sRAPA=None, sTOR=None) | RAPA(s=2)%FKBP(sRAPA=2, sTOR=None), *[rapa_kfwd, rapa_krev])
-# Rule('mTOR_Inhibitory_Complex', RAPA(s=2)%FKBP(sRAPA=2, sTOR=None) + mTOR(sRHEB=None, sATP=None, kFRB=None) | RAPA(s=2)%FKBP(sRAPA=2, sTOR=4)%mTOR(sRHEB=None, sATP=None, kFRB=4), *[rapa_comp_kfwd, rapa_comp_krev])
-# bind(mTOR, 'kFRB', RAPA, 's', [rapa_mt_kfwd, rapa_mt_krev])
+Rule('FKBP_Inhibitory_Complex', RAPA(s=None)+ FKBP(sRAPA=None, sTOR=None) | RAPA(s=2)%FKBP(sRAPA=2, sTOR=None), *[rapa_kfwd, rapa_krev])
+Rule('mTOR_Inhibitory_Complex', RAPA(s=2)%FKBP(sRAPA=2, sTOR=None) + mTOR(sRHEB=None, sATP=None, kFRB=None) | RAPA(s=2)%FKBP(sRAPA=2, sTOR=4)%mTOR(sRHEB=None, sATP=None, kFRB=4), *[rapa_comp_kfwd, rapa_comp_krev])
+bind(mTOR, 'kFRB', RAPA, 's', [rapa_mt_kfwd, rapa_mt_krev])
 
 # #mTOR Binding ATP & Activated RHEB --> Activation Conditions w/ Binding of Both, RHEB 1st
 
-# Rule('mTOR_pRHEB_Binding', mTOR(sRHEB=None, sATP=None, kFRB=None) + pRHEB(p=None)| pRHEB(p=2)%mTOR(sRHEB=2, sATP=None, kFRB=None), *[kf_bind, kr_bind])
-# Rule('mTOR_pRHEB_to_ATP_Bind', pRHEB(p=2)%mTOR(sRHEB=2, sATP=None, kFRB=None) + ATP(s=None) | pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=None), *[kf_bind, kr_bind])
+Rule('mTOR_pRHEB_Binding', mTOR(sRHEB=None, sATP=None, kFRB=None) + pRHEB(p=None)| pRHEB(p=2)%mTOR(sRHEB=2, sATP=None, kFRB=None), *[kf_bind, kr_bind])
+Rule('mTOR_pRHEB_to_ATP_Bind', pRHEB(p=2)%mTOR(sRHEB=2, sATP=None, kFRB=None) + ATP(s=None) | pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=None), *[kf_bind, kr_bind])
 
 # #Activated mTOR Binding Downstream S6K and 4EBP... CANT phosphorylate both S6K and 4EBP at the same time. Both occupy FRB domain
 
-# Rule('Activated_mTOR_S6K_Binding', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=None) + S6K(s=None) | pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%S6K(s=4), *[kf_bind, kr_bind])
-# Rule('Activated_mTOR_4EBP_Binding', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=None) + EBP4(s=None) | pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%EBP4(s=4), *[kf_bind, kr_bind])
+Rule('Activated_mTOR_S6K_Binding', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=None) + S6K(s=None) | pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%S6K(s=4), *[kf_bind, kr_bind])
+Rule('Activated_mTOR_4EBP_Binding', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=None) + EBP4(s=None) | pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%EBP4(s=4), *[kf_bind, kr_bind])
 
 # #Production of mTOR Phosphorylated Prodcuts --> Results in Increased Transcription & Protein Translation 
-# Rule('Production_of_pS6K', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%S6K(s=4) >> RHEB(kAKT=None) + ADP(s=None) + mTOR(sRHEB=None, sATP=None, kFRB=None) + pS6K(p=None), *[kcat_s6])
-# Rule('Production_of_pEBP4', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%EBP4(s=4) >> RHEB(kAKT=None) + ADP(s=None) + mTOR(sRHEB=None, sATP=None, kFRB=None) + pEBP4(p=None) , *[kcat_ebp4])
+Rule('Production_of_pS6K', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%S6K(s=4) >> RHEB(kAKT=None) + ADP(s=None) + mTOR(sRHEB=None, sATP=None, kFRB=None) + pS6K(p=None), *[kcat_s6])
+Rule('Production_of_pEBP4', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%EBP4(s=4) >> RHEB(kAKT=None) + ADP(s=None) + mTOR(sRHEB=None, sATP=None, kFRB=None) + pEBP4(p=None) , *[kcat_ebp4])
 
 # #pS6K Negative Feedback Loop --> Inhibits PI3K
-# Rule('pS6K_Binding_Unbound_PI3K', PI3K(sS6K=None, sIRS=None) + pS6K(p=None) | PI3K(sS6K=1, sIRS=None)%pS6K(p=1), *[kf_bind, kr_bind])
-# Rule('pS6K_Inactivating_Unbound_PI3K', PI3K(sS6K=1, sIRS=None)%pS6K(p=1) >> iPI3K(i=None) + S6K(s=None), *[kcat])
+Rule('pS6K_Binding_Unbound_PI3K', PI3K(sS6K=None, sIRS=None) + pS6K(p=None) | PI3K(sS6K=1, sIRS=None)%pS6K(p=1), *[kf_bind, kr_bind])
+Rule('pS6K_Inactivating_Unbound_PI3K', PI3K(sS6K=1, sIRS=None)%pS6K(p=1) >> iPI3K(i=None) + S6K(s=None), *[kcat])
 
 
 # Observables
@@ -155,14 +155,14 @@ for i in range(0,len(out),5):
     print('pS6K: %.0f  pEBP4: %.0f  pAKT: %.0f  pPI3K: %.0f  FKBP: %.0f iPI3K: %.0f' % \
             (out['opS6K'][i],out['opEBP4'][i],out['opAKT'][i],out['opPI3K'][i],out['oFKBP'][i],out['oiPI3K'][i]))
 
-# simres = ScipyOdeSimulator(model, tspan=t).run()
-# yout = simres.all
-# pl.ion()
-# pl.figure()
-# pl.plot(t, yout['opS6K'], label="pS6K")
-# pl.plot(t, yout['opEBP4'], label="pEBP4")
-# pl.plot(t, yout['opAKT'], label="pAKT")
-# pl.legend()
-# pl.xlabel("Time (s)")
-# pl.ylabel("Molecules/cell")
-# pl.show()
+simres = ScipyOdeSimulator(model, tspan=t).run()
+yout = simres.all
+pl.ion()
+pl.figure()
+pl.plot(t, yout['opS6K'], label="pS6K")
+pl.plot(t, yout['opEBP4'], label="pEBP4")
+pl.plot(t, yout['opAKT'], label="pAKT")
+pl.legend()
+pl.xlabel("Time (s)")
+pl.ylabel("Molecules/cell")
+pl.show()
