@@ -1,7 +1,5 @@
 #usr/bin/env python3
 from pysb import *
-from pysb.macros import catalyze
-from pysb.macros import catalyze_one_step
 from pysb.macros import bind
 from pysb.macros import *
 from pysb.integrate import odesolve
@@ -11,11 +9,9 @@ from pysb.simulator import ScipyOdeSimulator
 import pylab as pl              
 
 ###Set Starting Rapamycin & Insulin Concentration
-#rapa_0 = sys.argv[1]
-rapa_0 = 1.64e5   #1.65e5 starting
-#rapa_0 = 0
-#insulin_0 = sys.argv[2]
-insulin_0 = 1.05e6 
+rapa_0 = sys.argv[1]
+insulin_0 = sys.argv[2]
+
 
 ### Insulin-IRa Kf & Kd
     #https://doi.org/10.3389/fendo.2015.00107, Ligand-binding affinity at the insulin receptor isoform-A and subsequent IR-A tyrosine phosphorylation kinetics are important determinants of mitogenic biological outcomes, Harinda Rajapaksha and imageBriony E. Forbes
@@ -45,11 +41,10 @@ kcat_pebp4 = 0.003
 Model()
 
 #Declare Monomers
-Monomer('RAPA', ['s'])
-Monomer('INS', ['s'])
+Monomer('RAPA', ['s']) #Rapamycin
+Monomer('INS', ['s']) #Insulin
 Monomer('FKBP', ['sRAPA', 'sTOR'])
 Monomer('mTOR', ['sRHEB', 'sATP', 'kFRB'])
-Monomer('imTOR', ['i']) #Inactivated mTOR
 Monomer('S6K', ['s'])
 Monomer('pS6K', ['p'])
 Monomer('EBP4', ['s'])
@@ -87,11 +82,10 @@ Initial(INS(s=None), Parameter('INS_0',insulin_0)) #Tuneable mTOR activation
 
     #Endogenous Molecules
 Initial(FKBP(sRAPA=None, sTOR=None), Parameter('FKBP_0', 2000))
-#Initial(mTOR(sRAPA=None, sRHEB=None, sATP=None, kS6K=None, kEBP4=None), Parameter('mTOR_0', 10000))
 Initial(mTOR(sRHEB=None, sATP=None, kFRB=None), Parameter('mTOR_0', 10000))
 Initial(S6K(s=None), Parameter('S6K_0', 6000))
 Initial(EBP4(s=None), Parameter('EBP4_0',5000))
-Initial(ATP(s=None), Parameter('ATP_0',10000))  #reported 1-10mM atp per cell
+Initial(ATP(s=None), Parameter('ATP_0',10000))  
 Initial(AKT(s=None), Parameter('AKT_0',5000))
 Initial(RHEB(kAKT=None), Parameter('RHEB_0',1000))
 Initial(IRS(sINS=None, sPI3K=None, sATP=None, kAKT=None), Parameter('IRS_0',10000))
@@ -109,30 +103,30 @@ Rule('Active_IRS_ATP_Bind_PI3K_Bind', INS(s=1)%IRS(sINS=1,sPI3K=None, sATP=2, kA
 Rule('Activate_AKT', INS(s=1)%IRS(sINS=1,sPI3K=3, sATP=2, kAKT=None)%ATP(s=2)%PI3K(sS6K=None, sIRS=3)+AKT(s=None) | INS(s=1)%IRS(sINS=1,sPI3K=3, sATP=2, kAKT=4)%ATP(s=2)%PI3K(sS6K=None, sIRS=3)%AKT(s=4), *[kf_bind, kr_bind])
 Rule('Phosphorylate_AKT', INS(s=1)%IRS(sINS=1,sPI3K=3, sATP=2, kAKT=4)%ATP(s=2)%PI3K(sS6K=None, sIRS=3)%AKT(s=4) >> INS(s=None) + IRS(sINS=None,sPI3K=None, sATP=None, kAKT=None) + ADP(s=None) + PI3K(sS6K=None, sIRS=None) + pAKT(p=None), *[kcat])
 
-# #PhosphoAKT-RHEB Binding --> Prodcution of Activated RHEB
+#PhosphoAKT-RHEB Binding --> Prodcution of Activated RHEB
 bind(pAKT, 'p', RHEB, 'kAKT',[kf_bind, kr_bind])
 Rule('RHEB_Activation', pAKT(p=1)%RHEB(kAKT=1) >> AKT(s=None) + pRHEB(p=None), *[kcat])
 
-# #mTOR-RAPA-FKBP Inhibitory Complex
+#mTOR-RAPA-FKBP Inhibitory Complex
 Rule('FKBP_Inhibitory_Complex', RAPA(s=None)+ FKBP(sRAPA=None, sTOR=None) | RAPA(s=2)%FKBP(sRAPA=2, sTOR=None), *[rapa_kfwd, rapa_krev])
 Rule('mTOR_Inhibitory_Complex', RAPA(s=2)%FKBP(sRAPA=2, sTOR=None) + mTOR(sRHEB=None, sATP=None, kFRB=None) | RAPA(s=2)%FKBP(sRAPA=2, sTOR=4)%mTOR(sRHEB=None, sATP=None, kFRB=4), *[rapa_comp_kfwd, rapa_comp_krev])
 bind(mTOR, 'kFRB', RAPA, 's', [rapa_mt_kfwd, rapa_mt_krev])
 
-# #mTOR Binding ATP & Activated RHEB --> Activation Conditions w/ Binding of Both, RHEB 1st
+#mTOR Binding ATP & Activated RHEB --> Activation Conditions w/ Binding of Both, RHEB 1st
 
 Rule('mTOR_pRHEB_Binding', mTOR(sRHEB=None, sATP=None, kFRB=None) + pRHEB(p=None)| pRHEB(p=2)%mTOR(sRHEB=2, sATP=None, kFRB=None), *[kf_bind, kr_bind])
 Rule('mTOR_pRHEB_to_ATP_Bind', pRHEB(p=2)%mTOR(sRHEB=2, sATP=None, kFRB=None) + ATP(s=None) | pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=None), *[kf_bind, kr_bind])
 
-# #Activated mTOR Binding Downstream S6K and 4EBP... CANT phosphorylate both S6K and 4EBP at the same time. Both occupy FRB domain
+#Activated mTOR Binding Downstream S6K and 4EBP... CANT phosphorylate both S6K and 4EBP at the same time. Both occupy FRB domain
 
 Rule('Activated_mTOR_S6K_Binding', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=None) + S6K(s=None) | pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%S6K(s=4), *[kf_bind, kr_bind])
 Rule('Activated_mTOR_4EBP_Binding', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=None) + EBP4(s=None) | pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%EBP4(s=4), *[kf_bind, kr_bind])
 
-# #Production of mTOR Phosphorylated Prodcuts --> Results in Increased Transcription & Protein Translation 
+#Production of mTOR Phosphorylated Prodcuts --> Results in Increased Transcription & Protein Translation 
 Rule('Production_of_pS6K', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%S6K(s=4) >> RHEB(kAKT=None) + ADP(s=None) + mTOR(sRHEB=None, sATP=None, kFRB=None) + pS6K(p=None), *[kcat_s6])
 Rule('Production_of_pEBP4', pRHEB(p=2)%ATP(s=3)%mTOR(sRHEB=2, sATP=3, kFRB=4)%EBP4(s=4) >> RHEB(kAKT=None) + ADP(s=None) + mTOR(sRHEB=None, sATP=None, kFRB=None) + pEBP4(p=None) , *[kcat_ebp4])
 
-# #pS6K Negative Feedback Loop --> Inhibits PI3K
+#pS6K Negative Feedback Loop --> Inhibits PI3K
 Rule('pS6K_Binding_Unbound_PI3K', PI3K(sS6K=None, sIRS=None) + pS6K(p=None) | PI3K(sS6K=1, sIRS=None)%pS6K(p=1), *[kf_bind, kr_bind])
 Rule('pS6K_Inactivating_Unbound_PI3K', PI3K(sS6K=1, sIRS=None)%pS6K(p=1) >> iPI3K(i=None) + S6K(s=None), *[kcat])
 
@@ -155,14 +149,14 @@ for i in range(0,len(out),5):
     print('pS6K: %.0f  pEBP4: %.0f  pAKT: %.0f  pPI3K: %.0f  FKBP: %.0f iPI3K: %.0f' % \
             (out['opS6K'][i],out['opEBP4'][i],out['opAKT'][i],out['opPI3K'][i],out['oFKBP'][i],out['oiPI3K'][i]))
 
-simres = ScipyOdeSimulator(model, tspan=t).run()
-yout = simres.all
-pl.ion()
-pl.figure()
-pl.plot(t, yout['opS6K'], label="pS6K")
-pl.plot(t, yout['opEBP4'], label="pEBP4")
-pl.plot(t, yout['opAKT'], label="pAKT")
-pl.legend()
-pl.xlabel("Time (s)")
-pl.ylabel("Molecules/cell")
-pl.show()
+# simres = ScipyOdeSimulator(model, tspan=t).run()
+# yout = simres.all
+# pl.ion()
+# pl.figure()
+# pl.plot(t, yout['opS6K'], label="pS6K")
+# pl.plot(t, yout['opEBP4'], label="pEBP4")
+# pl.plot(t, yout['oiPI3K'], label="inh_PI3K")
+# pl.legend()
+# pl.xlabel("Time (s)")
+# pl.ylabel("Molecules/cell")
+# pl.show()
