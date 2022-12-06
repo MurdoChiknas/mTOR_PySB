@@ -1,7 +1,5 @@
 #usr/bin/env python3
 from pysb import *
-from pysb.macros import catalyze
-from pysb.macros import catalyze_one_step
 from pysb.macros import bind
 from pysb.macros import *
 from pysb.integrate import odesolve
