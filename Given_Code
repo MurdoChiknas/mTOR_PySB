@@ -85,7 +85,6 @@ Initial(INS(s=None), Parameter('INS_0',insulin_0)) #Tuneable mTOR activation
 
     #Endogenous Molecules
 Initial(FKBP(sRAPA=None, sTOR=None), Parameter('FKBP_0', 2000))
-#Initial(mTOR(sRAPA=None, sRHEB=None, sATP=None, kS6K=None, kEBP4=None), Parameter('mTOR_0', 10000))
 Initial(mTOR(sRHEB=None, sATP=None, kFRB=None), Parameter('mTOR_0', 10000))
 Initial(S6K(s=None), Parameter('S6K_0', 6000))
 Initial(EBP4(s=None), Parameter('EBP4_0',5000))
