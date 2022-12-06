@@ -11,8 +11,8 @@ from pysb.simulator import ScipyOdeSimulator
 import pylab as pl              
 
 ###Set Starting Rapamycin & Insulin Concentration
-#rapa_0 =
-#insulin_0 = 
+#rapa_0 = sys.argv[1]
+#insulin_0 = sys.argv[2]
 
 
 ### Insulin-IRa Kf & Kd
